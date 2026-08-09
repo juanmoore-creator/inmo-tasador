@@ -136,8 +136,8 @@ export function usePDFGenerator(): UsePDFGeneratorReturn {
 
             if (useChunked) {
                 // ── CHUNKED PATH ─────────────────────────────────────────
-                // Create a wrapper div for each chunk, temporarily moving
-                // page elements into it for isolated html2canvas capture.
+                // Create a wrapper div for each chunk, temporarily cloning
+                // page elements into it for isolated html2canvas capture (prevents mutating React DOM).
                 for (let chunkStart = 0; chunkStart < totalPages; chunkStart += CHUNK_SIZE) {
                     const chunkEnd = Math.min(chunkStart + CHUNK_SIZE, totalPages);
                     const chunkPages = pages.slice(chunkStart, chunkEnd);
@@ -150,14 +150,9 @@ export function usePDFGenerator(): UsePDFGeneratorReturn {
                     wrapper.style.left = '0px';
                     wrapper.style.top = '0px';
 
-                    // Move pages into wrapper (preserving DOM order)
-                    const parentRefs = chunkPages.map((p) => ({
-                        element: p as HTMLElement,
-                        parent: p.parentElement!,
-                        nextSibling: p.nextSibling,
-                    }));
-
-                    parentRefs.forEach(({ element }) => wrapper.appendChild(element));
+                    // Clone pages to avoid modifying the active React DOM
+                    const clonedPages = chunkPages.map((p) => p.cloneNode(true) as HTMLElement);
+                    clonedPages.forEach((clone) => wrapper.appendChild(clone));
                     container!.appendChild(wrapper);
 
                     await breathe(100);
@@ -197,14 +192,6 @@ export function usePDFGenerator(): UsePDFGeneratorReturn {
                         await breathe();
                     }
 
-                    // Restore pages back to original position
-                    parentRefs.forEach(({ element, parent, nextSibling }) => {
-                        if (nextSibling) {
-                            parent.insertBefore(element, nextSibling);
-                        } else {
-                            parent.appendChild(element);
-                        }
-                    });
                     wrapper.remove();
                 }
             } else {

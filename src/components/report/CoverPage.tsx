@@ -1,12 +1,24 @@
-
+import { useState, useEffect } from 'react';
 import type { CoverPageProps } from '../../types';
-import { getSafeImageUrl } from '../../utils/image';
+import { getSafeImageUrl, getWhiteTintedImageUrl } from '../../utils/image';
 
 
 const CoverPage = ({ data, theme, valuationDate }: CoverPageProps) => {
     const reportDate = valuationDate ? new Date(valuationDate) : new Date();
     const brandBlue = theme?.primary || '#3F11B2';
     const goldAccent = theme?.accent || '#C5A059';
+
+    const [whiteLogoUrl, setWhiteLogoUrl] = useState<string>('');
+
+    useEffect(() => {
+        if (theme?.logoUrl) {
+            getWhiteTintedImageUrl(getSafeImageUrl(theme.logoUrl))
+                .then(setWhiteLogoUrl)
+                .catch(() => setWhiteLogoUrl(getSafeImageUrl(theme.logoUrl)));
+        } else {
+            setWhiteLogoUrl('');
+        }
+    }, [theme?.logoUrl]);
 
     return (
         <div className="print-page cover-page h-[1123px] w-full bg-white relative flex overflow-hidden font-sans">
@@ -16,9 +28,9 @@ const CoverPage = ({ data, theme, valuationDate }: CoverPageProps) => {
                 <div className="mb-12 px-2 w-full">
                     {theme?.logoUrl ? (
                         <img
-                            src={getSafeImageUrl(theme.logoUrl)}
+                            src={whiteLogoUrl || getSafeImageUrl(theme.logoUrl)}
                             alt={`Logo ${theme?.companyName || ''}`}
-                            className="w-full max-w-[220px] object-contain mx-auto brightness-0 invert"
+                            className="w-full max-w-[220px] object-contain mx-auto"
                             crossOrigin="anonymous"
                         />
                     ) : (
@@ -27,6 +39,7 @@ const CoverPage = ({ data, theme, valuationDate }: CoverPageProps) => {
                         </div>
                     )}
                 </div>
+
 
                 {/* Date */}
                 <div className="absolute bottom-12 left-0 right-0 text-center px-4">

@@ -94,8 +94,9 @@ const ValuationSheet: React.FC<ValuationSheetProps> = ({ data }) => {
             <div className="flex items-center gap-3 mb-8">
                 <span className="px-4 py-1.5 border rounded-lg text-sm font-medium text-slate-600">Venta</span>
                 <span className="px-4 py-1.5 border rounded-lg text-sm font-medium text-slate-600">Departamento</span>
-                <span className="flex items-center gap-2 px-4 py-1.5 border rounded-lg text-sm font-medium text-blue-600 bg-blue-50 border-blue-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span> {valuationStatus || 'Cerrada'}
+                <span className="inline-block px-4 py-1.5 border rounded-lg text-sm font-medium text-blue-600 bg-blue-50 border-blue-100" style={{ verticalAlign: 'middle' }}>
+                    <span className="text-[14px] leading-[14px] mr-1 text-blue-600" style={{ verticalAlign: 'middle', display: 'inline-block' }}>•</span>
+                    <span style={{ verticalAlign: 'middle', display: 'inline-block' }}>{valuationStatus || 'Cerrada'}</span>
                 </span>
                 {closingDate && (
                     <span className="px-4 py-1.5 border rounded-lg text-sm font-medium text-slate-500">
@@ -134,20 +135,26 @@ const ValuationSheet: React.FC<ValuationSheetProps> = ({ data }) => {
             </div>
 
             {/* Address */}
-            <div className="flex items-center gap-3 mb-8">
-                <MapPin className="w-6 h-6 text-slate-800" />
-                <h2 className="text-lg font-medium text-slate-700">{target?.address}</h2>
+            <div className="mb-8" style={{ display: 'table', width: '100%', height: '28px' }}>
+                <div style={{ display: 'table-cell', verticalAlign: 'middle' }}>
+                    <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '12px', height: '24px', width: '24px' }}>
+                        <MapPin size={24} className="text-slate-800" style={{ display: 'block' }} />
+                    </span>
+                    <h2 className="text-lg font-medium text-slate-700" style={{ display: 'inline-block', verticalAlign: 'middle' }}>{target?.address}</h2>
+                </div>
             </div>
 
             {/* Attributes Grid */}
             <div className="grid grid-cols-2 gap-y-6 gap-x-12 mb-12">
                 {propertyAttributes.map((attr, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                        <attr.icon className="w-5 h-5 text-slate-600 stroke-2" />
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-slate-600">{attr.label}:</span>
+                    <div key={index} style={{ height: '24px', lineHeight: '24px' }}>
+                        <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '12px', marginTop: '-2px', height: '20px', width: '20px' }}>
+                            <attr.icon size={20} className="text-slate-600" strokeWidth={2} style={{ display: 'block' }} />
+                        </span>
+                        <span style={{ display: 'inline-block', verticalAlign: 'middle', fontSize: '14px' }}>
+                            <span className="text-slate-600">{attr.label}: </span>
                             <span className="font-bold text-slate-900">{attr.value}</span>
-                        </div>
+                        </span>
                     </div>
                 ))}
             </div>

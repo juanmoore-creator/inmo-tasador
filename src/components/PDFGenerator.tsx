@@ -384,11 +384,12 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
             )}
 
             {/* PDF Version History Modal */}
-            {showHistory && data?.id && (
+            {showHistory && data?.id && createPortal(
                 <PDFHistory
                     valuationId={data.id}
                     onClose={() => setShowHistory(false)}
-                />
+                />,
+                document.body
             )}
         </>
     );
