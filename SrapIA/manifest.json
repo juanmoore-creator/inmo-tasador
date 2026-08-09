@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "PropPick",
+  "version": "1.0.0",
+  "description": "Extractor inteligente de datos inmobiliarios con IA. Captura páginas de propiedades y extrae precios, expensas y más usando Gemini Vision.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "dist/background.bundle.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>", "https://inmo-tasador.web.app/*"],
+      "js": ["content/content.js"],
+      "css": [],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

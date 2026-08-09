@@ -1,0 +1,31 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Tenant logos and branding assets ───────────────────────────────────
+    // Public read (logos need to be loaded before auth in some cases).
+    // Only admins or manual Firebase console can upload tenant assets.
+    match /tenants/{tenantId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ── User-uploaded content (maps, property images, etc.) ───────────────
+    // Scoped by tenantId so tenants can't access each other's assets.
+    match /uploads/{tenantId}/{userId}/{allPaths=**} {
+      allow read: if request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.tenantId == tenantId;
+      allow write: if request.auth != null && request.auth.uid == userId &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.tenantId == tenantId;
+    }
+
+    // ── Legacy catch-all for existing files ────────────────────────────────
+    // TODO: Migrate existing files to tenant-scoped paths, then remove this.
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
