@@ -7,6 +7,7 @@ import TenantSettings from './pages/TenantSettings';
 import type { SavedValuation } from './types';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
+import PrintView from './pages/PrintView';
 import { saveValuation, subscribeUserValuations } from './services/valuationService';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { TenantProvider, useTenant } from './contexts/TenantContext';
@@ -393,6 +394,12 @@ function AppContent() {
 }
 
 export default function App() {
+  const isPrintMode = new URLSearchParams(window.location.search).has('print');
+  
+  if (isPrintMode) {
+    return <PrintView />;
+  }
+
   return (
     <ThemeProvider>
       <AuthProvider>

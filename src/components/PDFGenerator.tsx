@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ReportView from './ReportView';
-import { Download, X, FileText, Minus, Briefcase, BookOpen, Clock } from 'lucide-react';
+import { Download, X, FileText, Minus, Briefcase, BookOpen, Clock, Cloud } from 'lucide-react';
 import { usePDFGenerator } from '../hooks/usePDFGenerator';
+import { useCloudPDF } from '../hooks/useCloudPDF';
 import PDFHistory from './PDFHistory';
 import { uploadPDFVersion } from '../services/pdfHistoryService';
 import { useAuth } from '../contexts/AuthContext';
@@ -36,6 +37,7 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
 
     // PDF generation hook
     const { generatePDF, isGenerating, progress, error } = usePDFGenerator();
+    const { generatePDF: generateCloudPDF, isGenerating: isGeneratingCloud, error: cloudError } = useCloudPDF(valuation || null);
 
     useEffect(() => {
         setMountNode(document.body);
@@ -234,8 +236,23 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
                                     </button>
                                 )}
                                 <button
+                                    onClick={generateCloudPDF}
+                                    disabled={isGenerating || isGeneratingCloud}
+                                    className="p-2 md:px-4 md:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {isGeneratingCloud ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            <span className="hidden md:inline">Generando en Nube...</span>
+                                        </>
+                                    ) : (
+                                        <><Cloud className="w-4 h-4" /> <span className="hidden md:inline">Descargar PDF Nube</span></>
+                                    )}
+                                </button>
+
+                                <button
                                     onClick={handleGeneratePDF}
-                                    disabled={isGenerating}
+                                    disabled={isGenerating || isGeneratingCloud}
                                     className="p-2 md:px-4 md:py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm hover:shadow-md transition-colors duration-200 active:scale-95 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
                                 >
                                     {isGenerating ? (
@@ -244,7 +261,7 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
                                             <span className="hidden md:inline">{getProgressLabel()}</span>
                                         </>
                                     ) : (
-                                        <><Download className="w-4 h-4" /> <span className="hidden md:inline">Descargar PDF</span></>
+                                        <><Download className="w-4 h-4" /> <span className="hidden md:inline">PDF Básico</span></>
                                     )}
                                 </button>
                             </div>

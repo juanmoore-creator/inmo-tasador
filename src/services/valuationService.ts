@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, where, orderBy, doc, deleteDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, orderBy, doc, deleteDoc, setDoc, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { SavedValuation } from '../types';
 
@@ -109,3 +109,21 @@ export const subscribeUserValuations = (
     });
 };
 
+export const getValuationById = async (id: string, tenantId: string): Promise<SavedValuation | null> => {
+  try {
+    const docRef = doc(db, VALUATIONS_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data() as Omit<SavedValuation, 'id'>;
+      if (data.tenantId !== tenantId) {
+        throw new Error('Unauthorized');
+      }
+      return { id: docSnap.id, ...data };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error al obtener tasación por ID:', error);
+    throw error;
+  }
+};

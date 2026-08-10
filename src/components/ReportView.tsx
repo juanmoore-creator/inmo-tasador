@@ -165,7 +165,7 @@ const ReportView = ({ data, properties, valuation, stats, theme: incomingTheme, 
                     { label: "Matrícula", value: data.matricula, onChange: (v) => update('matricula', v) },
                     { label: "Fecha del Reporte", value: data.valuationDate ? new Date(data.valuationDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0], onChange: (v) => update('valuationDate', new Date(v).getTime()) },
                 ]}>
-                    <CoverPage data={data} theme={theme} valuationDate={valuationDate} />
+                    <CoverPage data={data} theme={theme} valuationDate={valuationDate} templateId={templateId} />
                 </AnnotatedPage>
             )}
 

@@ -58,6 +58,24 @@ const waitForImages = async (container: HTMLElement): Promise<void> => {
     );
 };
 
+/** Force browser reflow to ensure CSS computed values are ready */
+const forceReflow = (el: HTMLElement): number => {
+    return el.offsetHeight; // Read triggers reflow/repaint
+};
+
+/** Optimize images: downscale if larger than A4 width */
+const optimizeImages = (container: HTMLElement): void => {
+    const images = Array.from(container.querySelectorAll('img'));
+    images.forEach((img) => {
+        const rect = img.getBoundingClientRect();
+        // If image is wider than A4 page, constrain it
+        if (rect.width > A4_PAGE_WIDTH) {
+            img.style.maxWidth = `${A4_PAGE_WIDTH * 0.9}px`;
+            img.style.height = 'auto';
+        }
+    });
+};
+
 /** Yield to the browser to prevent UI freeze */
 const breathe = (ms = 30) => new Promise<void>((r) => setTimeout(r, ms));
 
@@ -94,7 +112,10 @@ export function usePDFGenerator(): UsePDFGeneratorReturn {
             container.style.left = '0px';
 
             await waitForImages(container);
-            await breathe(200); // Layout settle
+            optimizeImages(container);
+            await breathe(300); // Layout settle + reflow
+            forceReflow(container);
+            await breathe(100);
 
             // ── Discover pages ───────────────────────────────────────────
             const pages = Array.from(container.querySelectorAll('.print-page'));
@@ -103,7 +124,8 @@ export function usePDFGenerator(): UsePDFGeneratorReturn {
             const totalPages = pages.length;
             const isMobile = isMobileDevice();
             const captureScale = isMobile ? 1.5 : 2;
-            const useCompression = totalPages > 10;
+            const breatheDuration = captureScale > 2 ? 50 : 30; // More breathing room with higher scale
+            const useCompression = totalPages > 3; // Always compress for file size reduction
 
             setProgress({ current: 0, total: totalPages, phase: 'capturing' });
 
@@ -155,7 +177,7 @@ export function usePDFGenerator(): UsePDFGeneratorReturn {
                     clonedPages.forEach((clone) => wrapper.appendChild(clone));
                     container!.appendChild(wrapper);
 
-                    await breathe(100);
+                    await breathe(150);
 
                     const chunkCanvas = await html2canvas(wrapper, {
                         scale: captureScale,
@@ -183,13 +205,13 @@ export function usePDFGenerator(): UsePDFGeneratorReturn {
                                 0, j * sHeight, sWidth, sHeight,
                                 0, 0, sWidth, sHeight
                             );
-                            const dataUrl = pageCanvas.toDataURL('image/jpeg', 0.95);
+                            const dataUrl = pageCanvas.toDataURL('image/jpeg', 0.88);
                             pdf.addImage(dataUrl, 'JPEG', 0, 0, PDF_WIDTH_MM, PDF_HEIGHT_MM, undefined, 'FAST');
                         }
 
                         pdfPageIndex++;
                         setProgress({ current: pdfPageIndex, total: totalPages, phase: 'processing' });
-                        await breathe();
+                        await breathe(breatheDuration);
                     }
 
                     wrapper.remove();
@@ -225,13 +247,13 @@ export function usePDFGenerator(): UsePDFGeneratorReturn {
                             0, i * sHeight, sWidth, sHeight,
                             0, 0, sWidth, sHeight
                         );
-                        const dataUrl = pageCanvas.toDataURL('image/jpeg', 0.95);
+                        const dataUrl = pageCanvas.toDataURL('image/jpeg', 0.88);
                         pdf.addImage(dataUrl, 'JPEG', 0, 0, PDF_WIDTH_MM, PDF_HEIGHT_MM, undefined, 'FAST');
                     }
 
                     pdfPageIndex++;
                     setProgress({ current: pdfPageIndex, total: totalPages, phase: 'processing' });
-                    await breathe();
+                    await breathe(breatheDuration);
                 }
             }
 

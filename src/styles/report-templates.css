@@ -15,8 +15,10 @@
     background-image: none !important;
 }
 
-/* Reduce font sizes */
-.report-template-minimalist h1 { font-size: 1.5rem; }
+/* Reduce font sizes (except in cover page) */
+.report-template-minimalist:not(.cover-page) h1, 
+.report-template-minimalist .print-page:not(.cover-page) h1 { font-size: 1.5rem; }
+.report-template-minimalist .cover-page h1 { font-size: 3.75rem !important; line-height: 1.1 !important; }
 .report-template-minimalist h2 { font-size: 1.125rem; }
 .report-template-minimalist h3 { font-size: 0.9375rem; }
 
@@ -60,13 +62,6 @@
 }
 
 /* ── Executive ─────────────────────────────────────────────────────────────── */
-
-/* Executive cover: more centered, less sidebar-heavy */
-.report-template-executive .print-page:first-child {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
 
 /* Executive summary: denser table */
 .report-template-executive table {

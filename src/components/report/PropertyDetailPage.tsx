@@ -47,18 +47,14 @@ const PropertyDetailPage = ({ property, index, pageNumber, theme }: PropertyDeta
 
     // Section label-value renderer
     const DetailRow = ({ label, value, icon: Icon }: { label: string; value: string | number; icon?: any }) => (
-        <div style={{ display: 'table', width: '100%', height: '20px', padding: '3px 0' }}>
-            <div style={{ display: 'table-cell', verticalAlign: 'middle', textAlign: 'left' }}>
+        <div className="flex items-center justify-between py-[3px] w-full text-[10px] h-[20px]">
+            <div className="flex items-center">
                 {Icon && (
-                    <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px', height: '14px', width: '14px' }}>
-                        <Icon size={14} className="text-slate-400" strokeWidth={1.8} style={{ display: 'block' }} />
-                    </span>
+                    <Icon size={14} className="text-slate-400 mr-1.5 flex-shrink-0" strokeWidth={1.8} style={{ display: 'block' }} />
                 )}
-                <span className="text-[10px] text-slate-500" style={{ display: 'inline-block', verticalAlign: 'middle' }}>{label}:</span>
+                <span className="text-slate-500">{label}:</span>
             </div>
-            <div style={{ display: 'table-cell', verticalAlign: 'middle', textAlign: 'right' }}>
-                <span className="text-[10px] font-bold text-slate-800">{value}</span>
-            </div>
+            <span className="font-bold text-slate-800 text-right">{value}</span>
         </div>
     );
 
@@ -207,25 +203,23 @@ const PropertyDetailPage = ({ property, index, pageNumber, theme }: PropertyDeta
                 {property.propertyType && (
                     <span className="px-3 py-1 border border-slate-200 rounded-full text-[10px] font-medium text-slate-500">{property.propertyType}</span>
                 )}
-                <span className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-medium border ${property.captacionStatus === 'Cerrada' || property.status === 'Cerrada' || property.status === 'Vendido'
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-medium border ${property.captacionStatus === 'Cerrada' || property.status === 'Cerrada' || property.status === 'Vendido'
                     ? 'text-emerald-700 bg-emerald-50 border-emerald-100'
                     : property.captacionStatus === 'Reservada' || property.status === 'Reservado'
                         ? 'text-amber-700 bg-amber-50 border-amber-100'
                         : property.captacionStatus === 'Cancelada'
                             ? 'text-red-700 bg-red-50 border-red-100'
                             : 'text-blue-700 bg-blue-50 border-blue-100'
-                    }`} style={{ verticalAlign: 'middle' }}>
-                    <span className={`text-[12px] leading-[10px] mr-1 ${property.captacionStatus === 'Cerrada' || property.status === 'Cerrada' || property.status === 'Vendido'
-                        ? 'text-emerald-500'
+                    }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full mr-1.5 flex-shrink-0 ${property.captacionStatus === 'Cerrada' || property.status === 'Cerrada' || property.status === 'Vendido'
+                        ? 'bg-emerald-500'
                         : property.captacionStatus === 'Reservada' || property.status === 'Reservado'
-                            ? 'text-amber-500'
+                            ? 'bg-amber-500'
                             : property.captacionStatus === 'Cancelada'
-                                ? 'text-red-500'
-                                : 'text-blue-500'
-                        }`} style={{ verticalAlign: 'middle', display: 'inline-block' }}>•</span>
-                    <span style={{ verticalAlign: 'middle', display: 'inline-block' }}>
-                        {property.captacionStatus || property.status || 'Activa'}
-                    </span>
+                                ? 'bg-red-500'
+                                : 'bg-blue-500'
+                        }`}></span>
+                    {property.captacionStatus || property.status || 'Activa'}
                 </span>
                 {property.closingDate && (
                     <span className="px-3 py-1 border border-slate-200 rounded-full text-[10px] font-medium text-slate-500">
@@ -264,13 +258,9 @@ const PropertyDetailPage = ({ property, index, pageNumber, theme }: PropertyDeta
             </div>
 
             {/* Address */}
-            <div className="mb-3 flex-shrink-0" style={{ display: 'table', width: '100%', height: '20px' }}>
-                <div style={{ display: 'table-cell', verticalAlign: 'middle' }}>
-                    <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px', height: '16px', width: '16px' }}>
-                        <MapPin size={16} className="text-slate-400" style={{ display: 'block' }} />
-                    </span>
-                    <span className="text-xs font-semibold text-slate-700" style={{ display: 'inline-block', verticalAlign: 'middle' }}>{property.address}</span>
-                </div>
+            <div className="flex items-center mb-3 flex-shrink-0">
+                <MapPin size={16} className="text-slate-400 mr-1.5 flex-shrink-0" style={{ display: 'block' }} />
+                <span className="text-xs font-semibold text-slate-700">{property.address}</span>
             </div>
 
             {/* Main Attributes Grid (2 columns) */}

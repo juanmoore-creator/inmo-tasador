@@ -6,6 +6,7 @@ export interface ReportPageCommon {
     theme?: ReportTheme | null;
     pageNumber?: number;
     valuationDate?: number;
+    templateId?: ReportTemplateId;
 }
 
 // ── Datos editables del reporte (estado del modal preview) ──────────────────
