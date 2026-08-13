@@ -16,6 +16,17 @@ const PREDEFINED_COLORS = [
     { name: 'Gris Oscuro', value: '#334155' } // slate-700
 ];
 
+const PREDEFINED_ACCENT_COLORS = [
+    { name: 'Dorado', value: '#C5A059' },
+    { name: 'Champagne', value: '#D4AF37' },
+    { name: 'Bronce', value: '#B87333' },
+    { name: 'Cobre', value: '#B56B4F' },
+    { name: 'Plata', value: '#9ca3af' },
+    { name: 'Esmeralda', value: '#10b981' },
+    { name: 'Rubí', value: '#e11d48' },
+    { name: 'Negro', value: '#1e293b' }
+];
+
 const inputClass =
     'w-full bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500';
 
@@ -70,7 +81,7 @@ export default function TenantSettings() {
         });
     };
 
-    const handleColorChange = (color: string) => {
+    const handleColorChange = (type: 'primary' | 'accent', color: string) => {
         setFormData(prev => {
             if (!prev) return prev;
             return {
@@ -79,7 +90,7 @@ export default function TenantSettings() {
                     ...prev.branding,
                     colors: {
                         ...prev.branding.colors,
-                        primary: color
+                        [type]: color
                     }
                 }
             };
@@ -197,23 +208,79 @@ export default function TenantSettings() {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Color Principal (PDFs y App)</label>
-                            <div className="flex flex-wrap gap-3">
-                                {PREDEFINED_COLORS.map(color => (
-                                    <button
-                                        key={color.value}
-                                        type="button"
-                                        onClick={() => handleColorChange(color.value)}
-                                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${formData.branding.colors.primary === color.value ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' : 'hover:scale-110'}`}
-                                        style={{ backgroundColor: color.value }}
-                                        title={color.name}
-                                    >
-                                        {formData.branding.colors.primary === color.value && (
-                                            <CheckCircle2 className="w-5 h-5 text-white" />
-                                        )}
-                                    </button>
-                                ))}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Color Principal (PDFs y App)</label>
+                                <div className="flex flex-wrap gap-3 mb-4">
+                                    {PREDEFINED_COLORS.map(color => (
+                                        <button
+                                            key={color.value}
+                                            type="button"
+                                            onClick={() => handleColorChange('primary', color.value)}
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${formData.branding.colors.primary === color.value ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' : 'hover:scale-110'}`}
+                                            style={{ backgroundColor: color.value }}
+                                            title={color.name}
+                                        >
+                                            {formData.branding.colors.primary === color.value && (
+                                                <CheckCircle2 className="w-5 h-5 text-white" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <label className="text-xs text-slate-500 dark:text-slate-400">Personalizado:</label>
+                                    <input 
+                                        type="color" 
+                                        value={formData.branding.colors.primary}
+                                        onChange={(e) => handleColorChange('primary', e.target.value)}
+                                        className="h-8 w-14 rounded cursor-pointer border border-slate-200 p-0 overflow-hidden"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Color Secundario / Accent (PDFs)</label>
+                                <div className="flex flex-wrap gap-3 mb-4">
+                                    {PREDEFINED_ACCENT_COLORS.map(color => (
+                                        <button
+                                            key={color.value}
+                                            type="button"
+                                            onClick={() => handleColorChange('accent', color.value)}
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${formData.branding.colors.accent === color.value ? 'ring-2 ring-offset-2 ring-indigo-500 scale-110' : 'hover:scale-110'}`}
+                                            style={{ backgroundColor: color.value }}
+                                            title={color.name}
+                                        >
+                                            {formData.branding.colors.accent === color.value && (
+                                                <CheckCircle2 className="w-5 h-5 text-white" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <label className="text-xs text-slate-500 dark:text-slate-400">Personalizado:</label>
+                                    <input 
+                                        type="color" 
+                                        value={formData.branding.colors.accent || '#C5A059'}
+                                        onChange={(e) => handleColorChange('accent', e.target.value)}
+                                        className="h-8 w-14 rounded cursor-pointer border border-slate-200 p-0 overflow-hidden"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Live Preview Mockup */}
+                        <div className="mt-6 p-6 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 flex flex-col items-center justify-center">
+                            <p className="text-xs font-medium text-slate-400 mb-6 uppercase tracking-wider">Vista Previa (Portada del PDF)</p>
+                            <div className="w-full max-w-sm bg-white shadow-sm rounded-lg overflow-hidden font-sans border border-slate-200">
+                                <div className="p-8 pb-10 flex flex-col items-center text-center">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: formData.branding.colors.accent || '#C5A059' }}>
+                                        Informe de Tasación
+                                    </p>
+                                    <h3 className="text-2xl font-medium tracking-tight leading-tight" style={{ color: formData.branding.colors.primary }}>
+                                        Av. Libertador 1234
+                                    </h3>
+                                    <div className="w-12 h-1 mt-4" style={{ backgroundColor: formData.branding.colors.accent || '#C5A059' }}></div>
+                                </div>
                             </div>
                         </div>
                     </div>

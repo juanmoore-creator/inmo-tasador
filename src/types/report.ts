@@ -104,4 +104,6 @@ export interface PDFGeneratorProps {
     valuation?: SavedValuation['valuation'];
     /** Called before opening the preview modal (e.g. to save the valuation first) */
     onBeforePreview?: () => Promise<void>;
+    /** Called when the user clicks 'Guardar Cambios' inside the PDF preview editor */
+    onSaveEditedData?: (data: EditableReportData, comparables: Comparable[]) => Promise<void>;
 }

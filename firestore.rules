@@ -75,6 +75,14 @@ service cloud.firestore {
       allow read, write: if isAuthenticated() &&
         get(/databases/$(database)/documents/valuations/$(valuationId)).data.userId == request.auth.uid;
     }
+
+    // ── Public Shares collection ──────────────────────────────────────────
+    // Anyone can read a shared link to access a PDF. Only authenticated users can create them.
+    match /public_shares/{shareId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Short links are immutable
+    }
   }
 }
 

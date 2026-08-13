@@ -52,7 +52,7 @@ const AnnotatedPage = ({ children, inputs, visible, customSidebar, totalPages = 
 
     if (!visible) return <>{children}</>;
     return (
-        <div className="flex flex-col md:flex-row gap-8 mb-12 justify-center items-start">
+        <div className="flex flex-col md:flex-row gap-8 mb-12 justify-center items-center">
             <div ref={containerRef} className="w-full overflow-hidden">
                 <div
                     style={needsScale ? {
@@ -72,7 +72,7 @@ const AnnotatedPage = ({ children, inputs, visible, customSidebar, totalPages = 
             </div>
             {/* Annotation Side Panel */}
             {customSidebar ? customSidebar : (
-                <div className="w-full md:w-72 pt-8 md:sticky md:top-8">
+                <div className="w-full md:w-72 self-center md:sticky md:top-1/2 md:-translate-y-1/2">
                     <div className="bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-indigo-200 shadow-lg">
                         <h4 className="font-bold text-indigo-900 mb-4 uppercase text-xs tracking-wider flex items-center gap-2 border-b border-indigo-100 pb-2">
                             <span className="w-2 h-2 rounded-full bg-indigo-500"></span>

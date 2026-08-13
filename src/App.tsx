@@ -14,6 +14,7 @@ import { TenantProvider, useTenant } from './contexts/TenantContext';
 import ThemeToggle from './components/ThemeToggle';
 import { Shield, Settings, Plus } from 'lucide-react';
 import MobileBottomNav from './components/MobileBottomNav';
+import SharedPdfViewer from './pages/SharedPdfViewer';
 
 function MainApp() {
   const { user, logout, isAdmin } = useAuth();
@@ -113,6 +114,31 @@ function MainApp() {
   const handleSave = async () => {
     if (!currentFormData) return;
     await handleGenerate(currentFormData);
+  };
+
+  const handleSaveFromPreview = async (editedData: any, editedComparables: any[]) => {
+    if (!currentFormData) return;
+
+    const newData = {
+      ...currentFormData,
+      target: editedData.target,
+      corredorName: editedData.corredorName,
+      matricula: editedData.matricula,
+      clientName: editedData.clientName,
+      valuation: {
+        ...(currentFormData.valuation || {}),
+        market: editedData.market,
+        low: editedData.low,
+        high: editedData.high,
+        zoneLimit1: editedData.zoneLimit1,
+        zoneLimit2: editedData.zoneLimit2,
+        conclusion: editedData.conclusion,
+      },
+      comparables: editedComparables,
+    };
+    
+    handleFormChange(newData);
+    await handleGenerate(newData);
   };
 
   const handleFormChange = (data: SavedValuation) => {
@@ -358,6 +384,7 @@ function MainApp() {
                   tipo="tasacion"
                   data={valuationData || currentFormData}
                   onBeforePreview={handleSave}
+                  onSaveEditedData={handleSaveFromPreview}
                   className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
                 />
               </div>
@@ -394,10 +421,16 @@ function AppContent() {
 }
 
 export default function App() {
-  const isPrintMode = new URLSearchParams(window.location.search).has('print');
+  const params = new URLSearchParams(window.location.search);
+  const isPrintMode = params.has('print');
+  const isShareMode = params.has('share');
   
   if (isPrintMode) {
     return <PrintView />;
+  }
+
+  if (isShareMode) {
+    return <SharedPdfViewer />;
   }
 
   return (

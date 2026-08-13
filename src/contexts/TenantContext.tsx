@@ -12,7 +12,7 @@ interface TenantContextType {
     error: string | null;
 }
 
-const TenantContext = createContext<TenantContextType>({
+export const TenantContext = createContext<TenantContextType>({
     tenant: null,
     reportTheme: null,
     isTenantOwner: false,

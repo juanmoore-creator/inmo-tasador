@@ -16,17 +16,17 @@ const ContactPage = ({ data, theme, pageNumber }: ContactPageProps) => {
                 <p><strong>Web:</strong> {theme?.website || '-'}</p>
             </div>
 
-            <div className="absolute bottom-32 left-12 right-12 pt-6 border-t border-slate-200 flex justify-between text-xs text-slate-400 bg-white z-10">
-                <span>Reporte generado el {new Date().toLocaleDateString()}</span>
-                {pageNumber && <span>Página {pageNumber}</span>}
-            </div>
-
-            <div className="absolute bottom-12 left-12 right-12 text-sm text-slate-400 max-w-lg mx-auto leading-relaxed bg-white z-10">
+            <div className="absolute bottom-28 left-12 right-12 text-xs text-slate-400 max-w-xl mx-auto leading-relaxed text-center bg-white z-10">
                 <p>
                     <strong>Aviso Legal:</strong> La presente tasación es una estimación de valor de mercado basada en comparables
                     y análisis profesional. No constituye una tasación bancaria oficial ni garantiza el precio final de venta.
                     Los valores pueden variar según las condiciones del mercado.
                 </p>
+            </div>
+
+            <div className="absolute bottom-12 left-12 right-12 pt-4 border-t border-slate-200 flex justify-between text-xs text-slate-400 bg-white z-10">
+                <span>Reporte generado el {new Date().toLocaleDateString()}</span>
+                {pageNumber && <span>Página {pageNumber}</span>}
             </div>
         </div>
     );

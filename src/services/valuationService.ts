@@ -7,11 +7,23 @@ const VALUATIONS_COLLECTION = 'valuations';
 // IDs generados localmente antes del primer guardado (ej: "val-1234567890")
 const isLocalId = (id: string) => id.startsWith('val-');
 
+const cleanUndefined = (obj: any): any => {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(cleanUndefined);
+    return Object.fromEntries(
+        Object.entries(obj)
+            .filter(([_, v]) => v !== undefined)
+            .map(([k, v]) => [k, cleanUndefined(v)])
+    );
+};
+
 export const saveValuation = async (userId: string, tenantId: string, valuation: SavedValuation): Promise<string> => {
     try {
+        const cleanValuation = cleanUndefined(valuation);
+        
         // Si ya tiene un ID real de Firestore, actualizar el documento existente
-        if (valuation.id && !isLocalId(valuation.id)) {
-            const { id, ...valuationWithoutId } = valuation;
+        if (cleanValuation.id && !isLocalId(cleanValuation.id)) {
+            const { id, ...valuationWithoutId } = cleanValuation;
             const docRef = doc(db, VALUATIONS_COLLECTION, id);
             await setDoc(docRef, {
                 ...valuationWithoutId,
@@ -23,7 +35,7 @@ export const saveValuation = async (userId: string, tenantId: string, valuation:
         }
 
         // Primera vez: crear un documento nuevo
-        const { id, ...valuationWithoutId } = valuation;
+        const { id, ...valuationWithoutId } = cleanValuation;
         const docRef = await addDoc(collection(db, VALUATIONS_COLLECTION), {
             ...valuationWithoutId,
             userId,

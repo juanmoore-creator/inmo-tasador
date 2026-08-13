@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import ReportView from './ReportView';
-import { Download, X, FileText, Minus, Briefcase, BookOpen, Clock, Cloud } from 'lucide-react';
+import { Download, X, FileText, Minus, Briefcase, BookOpen, Clock, Cloud, Save } from 'lucide-react';
 import { usePDFGenerator } from '../hooks/usePDFGenerator';
 import { useCloudPDF } from '../hooks/useCloudPDF';
 import PDFHistory from './PDFHistory';
 import { uploadPDFVersion } from '../services/pdfHistoryService';
+import { createShareLink } from '../services/shareService';
 import { useAuth } from '../contexts/AuthContext';
 
 import type { Comparable, PDFGeneratorProps, EditableReportData, ReportTemplateId } from '../types';
 import { REPORT_TEMPLATES, TEMPLATE_ORDER } from '../config/reportTemplates';
 
 
-const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corredorName, matricula, clientName, theme, displayMode = 'text', className, onBeforePreview }: PDFGeneratorProps) => {
+const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corredorName, matricula, clientName, theme, displayMode = 'text', className, onBeforePreview, onSaveEditedData }: PDFGeneratorProps) => {
     const [showPreview, setShowPreview] = useState(false);
     const [showNoComparablesWarning, setShowNoComparablesWarning] = useState(false);
     const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
@@ -20,6 +21,9 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
     // State for overrides
     const [editableReportData, setEditableReportData] = useState<EditableReportData | null>(null);
     const [editableComparables, setEditableComparables] = useState<Comparable[]>([]);
+    
+    // State for Share Link
+    const [shareLink, setShareLink] = useState<string | null>(null);
 
     // Template selection
     const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplateId>(
@@ -35,9 +39,24 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
         FileText, Minus, Briefcase, BookOpen
     };
 
+    const [isSavingEdits, setIsSavingEdits] = useState(false);
+
     // PDF generation hook
     const { generatePDF, isGenerating, progress, error } = usePDFGenerator();
-    const { generatePDF: generateCloudPDF, isGenerating: isGeneratingCloud, error: cloudError } = useCloudPDF(valuation || null);
+    const { generatePDF: generateCloudPDF, isGenerating: isGeneratingCloud } = useCloudPDF(data || null);
+
+    const handleSaveEdits = async () => {
+        if (onSaveEditedData && editableReportData) {
+            setIsSavingEdits(true);
+            try {
+                await onSaveEditedData(editableReportData, editableComparables);
+            } catch (err) {
+                console.error("Error al guardar ediciones:", err);
+            } finally {
+                setIsSavingEdits(false);
+            }
+        }
+    };
 
     useEffect(() => {
         setMountNode(document.body);
@@ -171,6 +190,23 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
         }
     };
 
+    const handleCloudPDF = async () => {
+        await handleSaveEdits(); // Guarda primero para que Firestore tenga la última versión
+        const storagePath = await generateCloudPDF();
+        if (storagePath) {
+            // El archivo ya se descargó silenciosamente. Creamos el link corto y mostramos el modal
+            const origin = window.location.origin;
+            try {
+                const shortId = await createShareLink(storagePath);
+                setShareLink(`${origin}/?share=${shortId}`);
+            } catch (err) {
+                console.error("Error al crear link corto", err);
+                // Fallback a base64 si falla firestore
+                setShareLink(`${origin}/?share=${btoa(storagePath)}`);
+            }
+        }
+    };
+
     // Progress label for the generation bar
     const getProgressLabel = () => {
         if (!progress) return '';
@@ -235,8 +271,27 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
                                         <span className="hidden md:inline">Historial</span>
                                     </button>
                                 )}
+                                {onSaveEditedData && (
+                                    <button
+                                        onClick={handleSaveEdits}
+                                        className="p-2 md:px-4 md:py-2 text-indigo-700 hover:bg-indigo-50 border border-indigo-200 rounded-lg transition-colors text-sm font-semibold flex items-center gap-2"
+                                        disabled={isGenerating || isSavingEdits}
+                                    >
+                                        {isSavingEdits ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                                <span className="hidden md:inline">Guardando...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4" />
+                                                <span className="hidden md:inline">Guardar Cambios</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
                                 <button
-                                    onClick={generateCloudPDF}
+                                    onClick={handleCloudPDF}
                                     disabled={isGenerating || isGeneratingCloud}
                                     className="p-2 md:px-4 md:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
                                 >
@@ -406,6 +461,61 @@ const PDFGenerator = ({ tipo, data, target, comparables, valuation, stats, corre
                     valuationId={data.id}
                     onClose={() => setShowHistory(false)}
                 />,
+                document.body
+            )}
+
+            {/* Share Link Modal */}
+            {shareLink && createPortal(
+                <div
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+                    style={{ backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)' }}
+                    onClick={() => setShareLink(null)}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-7 flex flex-col items-center gap-4 animate-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div className="text-center w-full">
+                            <h3 className="text-lg font-bold text-slate-900 mb-1">¡Descarga Completa!</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                                El PDF se ha guardado en tu computadora. Podés compartir esta tasación con tu cliente copiando el siguiente enlace seguro:
+                            </p>
+                            <div className="flex w-full items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                <input 
+                                    type="text" 
+                                    readOnly 
+                                    value={shareLink} 
+                                    className="flex-1 bg-transparent border-none text-xs text-slate-600 focus:ring-0 truncate"
+                                />
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(shareLink);
+                                        const btn = document.getElementById('copy-btn');
+                                        if (btn) {
+                                            btn.innerText = '¡Copiado!';
+                                            setTimeout(() => btn.innerText = 'Copiar', 2000);
+                                        }
+                                    }}
+                                    id="copy-btn"
+                                    className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-md transition-colors"
+                                >
+                                    Copiar
+                                </button>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShareLink(null)}
+                            className="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors active:scale-95"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>,
                 document.body
             )}
         </>

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebase/config';
 import type { SavedValuation } from '../types';
 
 export function useCloudPDF(valuation: SavedValuation | null) {
@@ -22,21 +24,39 @@ export function useCloudPDF(valuation: SavedValuation | null) {
       const printToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
       
       const functions = getFunctions();
-      const generatePdfReport = httpsCallable(functions, 'generatePdfReport');
+      const generateCloudPdf = httpsCallable(functions, 'generateCloudPdf');
 
-      const response = await generatePdfReport({
+      const response = await generateCloudPdf({
         valuationId: valuation.id,
         tenantId: valuation.tenantId,
         printToken: printToken
       });
 
-      const data = response.data as { success: boolean; storageUrl: string; storagePath: string };
+      const data = response.data as { success: boolean; storagePath: string };
 
-      if (data.success && data.storageUrl) {
-        // Descargar el archivo o abrirlo en una nueva pestaña
-        window.open(data.storageUrl, '_blank');
+      if (data.success && data.storagePath) {
+        const pdfRef = ref(storage, data.storagePath);
+        const downloadUrl = await getDownloadURL(pdfRef);
+
+        // Descargar el archivo a la memoria local vía fetch para evitar que el navegador
+        // intente previsualizarlo ahora que quitamos el "attachment" en el servidor.
+        const responseBlob = await fetch(downloadUrl);
+        const blob = await responseBlob.blob();
+        const localUrl = URL.createObjectURL(blob);
+        
+        // Ejecutar descarga silenciosa
+        const a = document.createElement('a');
+        a.href = localUrl;
+        a.download = `Tasacion_${valuation.id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(localUrl);
+
+        // Devolvemos el path para que el componente que llame al hook pueda generar el Link Público
+        return data.storagePath;
       } else {
-        throw new Error('La función no devolvió una URL válida');
+        throw new Error('La función no devolvió un archivo válido');
       }
 
     } catch (err: any) {
